@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="login-container">
+    <h2>Bienvenido a PyWatts, inicie sesión para continuar</h2>
+    <form method="POST" action="/">
+        <div class="form-group">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" required>
+            
+        </div>
+        <button type="submit">Iniciar Sesión</button>
+    </form>
+    <p class="register-link">
+        ¿No tienes una cuenta? 
+        <a href="/register">Regístrate aquí</a>
+    </p>
+</div>
+{% endblock %}
