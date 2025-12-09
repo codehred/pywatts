@@ -5,8 +5,8 @@ app = Flask(__name__)
 app.secret_key = 'dev'
 
 
-VALID_USERNAME = 'user'
-VALID_PASSWORD_HASH = hashlib.sha256('pass'.encode()).hexdigest()
+VALID_USERNAME = 'user' #user temporal "user"
+VALID_PASSWORD_HASH = hashlib.sha256('pass'.encode()).hexdigest() #contraseña temporal "pass"
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -30,7 +30,7 @@ def dashboard():
         hours = request.form['hours']
         energy_consumed = float(power) * float(hours)
         print(device, energy_consumed)
-
+#comment para escribir bien¿¿¿
     return render_template('dashboard.html', username=session['user'])
 
 if __name__ == '__main__':
