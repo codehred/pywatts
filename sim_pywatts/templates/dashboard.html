@@ -1,27 +1,184 @@
 {%extends "base.html"%}
 
 {%block content%}
-<h2>Panel de Control de PyWatts</h2>
-<p>Bienvenido, {{ session['username'] }}!</p>
+<div class="dashboard-header">
+    <h1>
+        <i class="fas fa-tachometer-alt"></i>
+        Panel de Control
+    </h1>
+    <div class="user-info">
+        <div class="username">{{ session.username if session.username else 'Usuario' }}</div>
+        <div>{{ session.address if session.address else 'Sin domicilio registrado' }}</div>
+    </div>
+</div>
 
-<form method="POST" action="/dashboard">
-    <label>Nombre del dispositivo:</label>
-    <input type="text" name="device" required>
+<div class="stats-grid">
+    <div class="stat-card consumption">
+        <div class="icon">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="info">
+            <h3>Consumo Total</h3>
+            <div class="value">{{ total_consumption|default('0') }} kWh</div>
+        </div>
+    </div>
+ <div class="stat-card cost">
+        <div class="icon">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="info">
+            <h3>Costo Bimestral</h3>
+            <div class="value">${{ billing_amount|default('0.00') }}</div>
+        </div>
+    </div>
 
-    <br><br>
+    <div class="stat-card devices">
+        <div class="icon">
+            <i class="fas fa-plug"></i>
+        </div>
+        <div class="info">
+            <h3>Dispositivos</h3>
+            <div class="value">{{ devices|length if devices else 0 }}</div>
+        </div>
+    </div>
 
-    <label>Potencia (W):</label>
-    <input type="number" step="any" name="power" required>
+    <div class="stat-card-savings">
+        <div class="icon">
+            <i class="fas fa-leaf"></i>
+        </div>
+        <div class="info">
+            <h3>Ahorro Potencial</h3>
+            <div class="value">{{ savings|default('0.00') }} kWh</div>
+        </div>
+    </div>
+</div>
 
-    <br><br>
+<div class="section">
+    <div class ="section-header">
+        <h2><i class="fas fa-chart-line"></i> Agregar dispositivos</h2>
+        </div>
+</div>
 
-    <label>Horas de uso por día:</label>
-    <input type="number" step="0.1" name="hours" required>
+<form method="POST"action "{ url_for('add_device') if 'add_device' in url_map else '/add-device' }}">
+    <div class="form-group">
+        <label for="device_name">Nombre del Dispositivo</label>
+        <input 
+            type="text" 
+            id="device_name" 
+            name="device_name" 
+            class="form-control" 
+            placeholder="Ingresa el nombre del dispositivo"
+            required
+        >
+    </div>
 
-    <br><br>
+    <div class="form-group">
+            <label for="device_type">Tipo de Dispositivo</label>
+                <select id="device_type" name="device_type" class="form-control" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="refrigerador">Refrigerador</option>
+                    <option value="aire_acondicionado">Aire Acondicionado</option>
+                    <option value="television">Televisión</option>
+                    <option value="lavadora">Lavadora</option>
+                    <option value="microondas">Microondas</option>
+                    <option value="computadora">Computadora</option>
+                    <option value="iluminacion">Iluminación</option>
+                    <option value="otro">Otro</option>
+                </select>
+        </div>
+        <div class="form-group">
+            <label for="power_rating">Potencia (Watts)</label>
+            <input 
+                type="number" 
+                id="power_watts" 
+                name="power_watts" 
+                class="form-control" 
+                placeholder="Ingresa la potencia en Watts"
+                required
+                min="1"
+            >
+        </div>
 
-    <button type="submit">Agregar</button>
+        <div class="form-group">
+            <label for="hours_per_day">Horas de Uso Diario</label>
+            <input 
+                type="number" 
+                id="hours_per_day" 
+                name="hours_per_day" 
+                class="form-control" 
+                placeholder="Ingresa las horas de uso diario"
+                required
+                min="0.1"
+                max="24"
+                step="0.5"
+            >
+
+        </div>
+            
+    
+    <button type="submit" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        Agregar Dispositivo
+    </button>
 </form>
 
-<a href="/logout">Cerrar sesión</a>
-{% endblock %}
+<!-- Dispositivos registrados/lista de dispositivos-->
+
+<div class="section">
+    <div class="section-header">
+        <h2><i class="fas fa-list"></i> Mis Dispositivos</h2>
+    </div>
+
+    {% if devices and devices|length > 0 %}
+    <div class="device-list">
+        {% for device in devices %}
+        <div class="device-item">
+            <div class="device-icon">
+                <i class="fas fa-plug"></i>
+            </div>
+            <div class="device-info">
+                <h3>{{ device.name }}</h3>
+                <p>{{ device.type|title }} • {{ device.power }}W • {{ device.hours_per_day }}h/día</p>
+            </div>
+            <div class="device-consumption">
+                <div class="consumption">{{ device.daily_consumption|default('0') }} kWh</div>
+                <div class="label">Consumo diario</div>
+            </div>
+            <div class="device-actions">
+                <form method="POST" action="{{ url_for('delete_device', device_id=device.id) if 'delete_device' in url_map else '/delete-device/' + device.id|string }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('¿Estás seguro de eliminar este dispositivo?');">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-plug"></i>
+        <h3>No hay dispositivos registrados</h3>
+        <p>Agrega tu primer dispositivo para comenzar a monitorear tu consumo energético</p>
+    </div>
+    {% endif %}
+</div>
+
+<!--Consumo bimestral-->
+
+<div class="section">
+    <div class="section-header">
+        <h2><i class="fas fa-chart-bar"></i> Consumo Bimestral</h2>
+    </div>
+</div>
+
+
+<!--Reporte-->
+
+<div class="section">
+    <div class="section-header">
+        <h2><i class="fas fa-chart-line"></i> Análisis y Recomendaciones</h2>
+    </div>
+
+   
+
+{%endblock%}
