@@ -33,11 +33,10 @@ with app.app_context():
     db.create_all()
 
 
+
 @app.route('/')
 def index():
-    """Página principal"""
-    total_usuarios = Usuario.query.count()
-    return render_template('base.html', total_usuarios=total_usuarios)
+    return redirect(url_for('lista_usuarios'))
 
 
 @app.route('/registro', methods=['GET', 'POST'])
@@ -107,11 +106,20 @@ def dashboard(usuario_id):
 
 @app.route('/usuario/<int:usuario_id>/dispositivo/agregar', methods=['GET', 'POST'])
 def agregar_dispositivo(usuario_id):
-    """Agregar nuevo dispositivo"""
     usuario = db.session.get(Usuario, usuario_id)
     if not usuario:
         flash('Usuario no encontrado', 'danger')
         return redirect(url_for('lista_usuarios'))
+    
+    dispositivos = usuario.dispositivos
+    consumos = usuario.consumos
+    reportes = usuario.reportes
+    
+    total_dispositivos = len(dispositivos)
+    consumo_total = sum(d.consumo_bimestral_kwh() for d in dispositivos) if dispositivos else 0
+    ultimo_consumo = consumos[-1] if consumos else None
+    ultimo_reporte = reportes[-1] if reportes else None
+
     form = DispositivoForm()
     
     if form.validate_on_submit():
@@ -129,19 +137,36 @@ def agregar_dispositivo(usuario_id):
         flash(f'Dispositivo "{nuevo_dispositivo.nombre}" agregado exitosamente!', 'success')
         return redirect(url_for('dashboard', usuario_id=usuario_id))
     
-    return render_template('dashboard.html', usuario=usuario, form=form, modal_active=True)
+    return render_template('dashboard.html', 
+                          usuario=usuario, 
+                          form=form, 
+                          modal_active=True,
+                          dispositivos=dispositivos,
+                          total_dispositivos=total_dispositivos,
+                          consumo_total=consumo_total,
+                          ultimo_consumo=ultimo_consumo,
+                          ultimo_reporte=ultimo_reporte,
+                          reportes=reportes)
 
 
 @app.route('/usuario/<int:usuario_id>/dispositivo/<int:dispositivo_id>/editar', methods=['GET', 'POST'])
 def editar_dispositivo(usuario_id, dispositivo_id):
-    """Editar dispositivo existente"""
-    usuario = Usuario.query.get_or_404(usuario_id)
-    dispositivo = Dispositivo.query.get_or_404(dispositivo_id)
+    usuario = db.session.get(Usuario, usuario_id)
+    dispositivo = db.session.get(Dispositivo, dispositivo_id)
     
     if dispositivo.usuario_id != usuario_id:
         flash('No tienes permiso para editar este dispositivo', 'danger')
         return redirect(url_for('dashboard', usuario_id=usuario_id))
     
+    dispositivos = usuario.dispositivos
+    consumos = usuario.consumos
+    reportes = usuario.reportes
+    
+    total_dispositivos = len(dispositivos)
+    consumo_total = sum(d.consumo_bimestral_kwh() for d in dispositivos) if dispositivos else 0
+    ultimo_consumo = consumos[-1] if consumos else None
+    ultimo_reporte = reportes[-1] if reportes else None
+
     form = DispositivoForm(obj=dispositivo)
     
     if form.validate_on_submit():
@@ -155,8 +180,18 @@ def editar_dispositivo(usuario_id, dispositivo_id):
         flash(f'Dispositivo "{dispositivo.nombre}" actualizado exitosamente!', 'success')
         return redirect(url_for('dashboard', usuario_id=usuario_id))
     
-    return render_template('dashboard.html', usuario=usuario, form=form, 
-                          dispositivo=dispositivo, modal_active=True, modo_edicion=True)
+    return render_template('dashboard.html', 
+                          usuario=usuario, 
+                          form=form, 
+                          dispositivo=dispositivo, 
+                          modal_active=True, 
+                          modo_edicion=True,
+                          dispositivos=dispositivos,
+                          total_dispositivos=total_dispositivos,
+                          consumo_total=consumo_total,
+                          ultimo_consumo=ultimo_consumo,
+                          ultimo_reporte=ultimo_reporte,
+                          reportes=reportes)
 
 
 @app.route('/usuario/<int:usuario_id>/dispositivo/<int:dispositivo_id>/eliminar', methods=['POST'])
@@ -178,8 +213,17 @@ def eliminar_dispositivo(usuario_id, dispositivo_id):
 
 @app.route('/usuario/<int:usuario_id>/consumo/agregar', methods=['GET', 'POST'])
 def agregar_consumo(usuario_id):
-    """Agregar registro de consumo bimestral"""
-    usuario = Usuario.query.get_or_404(usuario_id)
+    usuario = db.session.get(Usuario, usuario_id)
+    
+    dispositivos = usuario.dispositivos
+    consumos = usuario.consumos
+    reportes = usuario.reportes
+    
+    total_dispositivos = len(dispositivos)
+    consumo_total = sum(d.consumo_bimestral_kwh() for d in dispositivos) if dispositivos else 0
+    ultimo_consumo = consumos[-1] if consumos else None
+    ultimo_reporte = reportes[-1] if reportes else None
+
     form = ConsumoBimestralForm()
     
     if form.validate_on_submit():
@@ -197,8 +241,16 @@ def agregar_consumo(usuario_id):
         flash('Consumo bimestral registrado exitosamente!', 'success')
         return redirect(url_for('dashboard', usuario_id=usuario_id))
     
-    return render_template('dashboard.html', usuario=usuario, form=form, 
-                          modal_consumo_active=True)
+    return render_template('dashboard.html', 
+                          usuario=usuario, 
+                          form=form, 
+                          modal_consumo_active=True,
+                          dispositivos=dispositivos,
+                          total_dispositivos=total_dispositivos,
+                          consumo_total=consumo_total,
+                          ultimo_consumo=ultimo_consumo,
+                          ultimo_reporte=ultimo_reporte,
+                          reportes=reportes)
 
 
 @app.route('/usuario/<int:usuario_id>/analizar')

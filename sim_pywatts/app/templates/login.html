@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h2>Seleccionar Usuario</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Selecciona tu perfil para acceder al dashboard</p>
+        </div>
+
+        <form method="GET" action="{{ url_for('lista_usuarios') }}" class="search-form" style="margin-bottom: 20px;">
+            <div class="input-wrapper">
+                <i class="fas fa-search"></i>
+                {{ form.nombre_usuario(class="form-control", placeholder="Buscar usuario...") }}
+            </div>
+        </form>
+
+        <div class="user-list" style="text-align: left; max-height: 300px; overflow-y: auto;">
+            {% if usuarios %}
+                {% for usuario in usuarios %}
+                <a href="{{ url_for('dashboard', usuario_id=usuario.id) }}" class="user-item" style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #333; color: var(--text-primary); text-decoration: none; transition: background 0.3s;">
+                    <div style="background: var(--accent-color); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: #121212; font-weight: bold;">
+                        {{ usuario.nombre_usuario[0]|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: bold;">{{ usuario.nombre_usuario }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ usuario.domicilio }}</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="margin-left: auto; color: var(--text-secondary);"></i>
+                </a>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: var(--text-secondary);">No hay usuarios registrados.</p>
+            {% endif %}
+        </div>
+
+        <div class="form-footer" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+            <a href="{{ url_for('registro_usuario') }}" class="btn btn-primary" style="display: block; width: 100%; text-align: center; box-sizing: border-box;">
+                <i class="fas fa-user-plus"></i> Registrar Nuevo Usuario
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

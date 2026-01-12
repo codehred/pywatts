@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h2>Crear Cuenta</h2>
+        </div>
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                <label for="nombre_usuario">Nombre de Usuario</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    {{ form.nombre_usuario(class="form-control", placeholder="Elige un nombre de usuario") }}
+                </div>
+                {% if form.nombre_usuario.errors %}
+                    <span style="color: #ff6b6b; font-size: 0.8rem;">{{ form.nombre_usuario.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="domicilio">Domicilio</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-home"></i>
+                    {{ form.domicilio(class="form-control", placeholder="Ingresa tu dirección completa") }}
+                </div>
+                {% if form.domicilio.errors %}
+                    <span style="color: #ff6b6b; font-size: 0.8rem;">{{ form.domicilio.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                <i class="fas fa-check-circle"></i>
+                Registrarse
+            </button>
+        </form>
+
+        <div class="form-footer" style="margin-top: 20px; font-size: 0.9rem;">
+            <p>¿Ya tienes una cuenta? <a href="{{ url_for('index') }}">Inicia sesión aquí</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container report-container">
+    <div class="dashboard-header">
+        <div>
+            <h1><i class="fas fa-chart-pie"></i> Análisis Energético</h1>
+            <p style="color: var(--text-secondary);">Reporte detallado para {{ usuario.nombre_usuario }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('generar_pdf', usuario_id=usuario.id) }}" class="btn btn-primary">
+                <i class="fas fa-file-pdf"></i> Descargar Reporte PDF
+            </a>
+            <a href="{{ url_for('dashboard', usuario_id=usuario.id) }}" class="btn" style="background-color: #333; color: white; margin-left: 10px;">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="impact-box">
+        <h2 style="color: var(--accent-color);"><i class="fas fa-leaf"></i> Impacto Ambiental y Ahorro</h2>
+        <div class="stats-grid" style="margin-top: 20px;">
+            <div class="stat-card-savings">
+                <div class="icon"><i class="fas fa-piggy-bank"></i></div>
+                <div class="info">
+                    <h3>Ahorro Económico</h3>
+                    <div class="value">${{ ahorro_total.ahorro_pesos }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="icon" style="color: #4ECDC4;"><i class="fas fa-tree"></i></div>
+                <div class="info">
+                    <h3>Árboles Equivalentes</h3>
+                    <div class="value">{{ impacto_ambiental.equivalente_arboles }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="icon" style="color: #FF6B6B;"><i class="fas fa-car"></i></div>
+                <div class="info">
+                    <h3>Km de Auto Evitados</h3>
+                    <div class="value">{{ impacto_ambiental.equivalente_km_auto }}</div>
+                </div>
+            </div>
+        </div>
+        <p style="font-size: 1.1rem; margin-top: 10px;">{{ impacto_ambiental.mensaje }}</p>
+    </div>
+
+    <div class="section-header" style="margin-top: 40px;">
+        <h2><i class="fas fa-chart-bar"></i> Visualización de Consumo</h2>
+    </div>
+    
+    <div class="chart-grid">
+        <div class="chart-card">
+            <h3>Consumo por Dispositivo</h3>
+            <img src="data:image/png;base64,{{ grafica_barras }}" alt="Gráfica de Barras">
+        </div>
+        <div class="chart-card">
+            <h3>Distribución del Consumo</h3>
+            <img src="data:image/png;base64,{{ grafica_pie }}" alt="Gráfica de Pastel">
+        </div>
+        <div class="chart-card">
+            <h3>Proyección Mensual</h3>
+            <img src="data:image/png;base64,{{ grafica_proyeccion }}" alt="Proyección">
+        </div>
+        <div class="chart-card">
+            <h3>Potencial de Ahorro</h3>
+            <img src="data:image/png;base64,{{ grafica_ahorro }}" alt="Ahorro">
+        </div>
+    </div>
+
+    <div class="section-header">
+        <h2><i class="fas fa-lightbulb"></i> Plan de Optimización</h2>
+    </div>
+
+    <div class="recommendations-section">
+        {% if recomendaciones.criticas %}
+            <h3 style="color: var(--danger-color);">🔴 Prioridad Alta (Acción Inmediata)</h3>
+            {% for rec in recomendaciones.criticas %}
+            <div class="rec-card priority-criticas">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4>{{ rec.dispositivo }}</h4>
+                    <span style="background: rgba(255,107,107,0.2); color: #ff6b6b; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem;">
+                        Ahorro: ${{ rec.ahorro_potencial_pesos }}
+                    </span>
+                </div>
+                <p><strong>Acción:</strong> {{ rec.accion_principal }}</p>
+                {% if rec.consejos_especificos %}
+                <ul style="color: var(--text-secondary); font-size: 0.9rem;">
+                    {% for consejo in rec.consejos_especificos %}
+                        <li>{{ consejo }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if recomendaciones.importantes %}
+            <h3 style="color: #f7dc6f; margin-top: 30px;">🟡 Prioridad Media</h3>
+            {% for rec in recomendaciones.importantes %}
+            <div class="rec-card priority-importantes">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4>{{ rec.dispositivo }}</h4>
+                    <span style="background: rgba(247,220,111,0.2); color: #f7dc6f; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem;">
+                        Ahorro: ${{ rec.ahorro_potencial_pesos }}
+                    </span>
+                </div>
+                <p>{{ rec.accion_principal }}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="rec-card" style="margin-top: 30px; border-left-color: var(--accent-color);">
+            <h3>💡 Consejos Generales</h3>
+            <ul>
+                {% for gen in recomendaciones.generales %}
+                    <li>{{ gen }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}      

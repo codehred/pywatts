@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="user-info">
+        <h1>
+            <i class="fas fa-tachometer-alt"></i>
+            Panel de Control
+        </h1>
+        <div class="username">{{ usuario.nombre_usuario }}</div>
+        <div><i class="fas fa-map-marker-alt"></i> {{ usuario.domicilio }}</div>
+    </div>
+    <div class="actions">
+        <a href="{{ url_for('lista_usuarios') }}" class="btn btn-danger" style="font-size: 0.9rem;">
+            <i class="fas fa-sign-out-alt"></i> Salir
+        </a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card consumption">
+        <div class="icon">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="info">
+            <h3>Consumo Total</h3>
+            <div class="value">{{ "%.2f"|format(consumo_total) }} kWh</div>
+        </div>
+    </div>
+    <div class="stat-card cost">
+        <div class="icon">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="info">
+            <h3>Costo Est.</h3>
+            <div class="value">${{ "%.2f"|format(consumo_total * 1.5) }}</div>
+        </div>
+    </div>
+
+    <div class="stat-card devices">
+        <div class="icon">
+            <i class="fas fa-plug"></i>
+        </div>
+        <div class="info">
+            <h3>Dispositivos</h3>
+            <div class="value">{{ total_dispositivos }}</div>
+        </div>
+    </div>
+
+    <div class="stat-card-savings">
+        <div class="icon">
+            <i class="fas fa-leaf"></i>
+        </div>
+        <div class="info">
+            <h3>Ahorro Potencial</h3>
+            <div class="value">{{ "%.2f"|format(ultimo_reporte.ahorro_pesos) if ultimo_reporte else '0.00' }} MXN</div>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-header">
+        <h2><i class="fas fa-tools"></i> Acciones Rápidas</h2>
+    </div>
+    <div class="action-bar" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px;">
+        <a href="{{ url_for('agregar_dispositivo', usuario_id=usuario.id) }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Agregar Dispositivo
+        </a>
+        <a href="{{ url_for('agregar_consumo', usuario_id=usuario.id) }}" class="btn btn-primary" style="background-color: #45B7D1;">
+            <i class="fas fa-file-invoice-dollar"></i> Registrar Recibo
+        </a>
+        <a href="{{ url_for('analizar_consumo', usuario_id=usuario.id) }}" class="btn btn-primary" style="background-color: #9B59B6;">
+            <i class="fas fa-magic"></i> Analizar y Optimizar
+        </a>
+    </div>
+</div>
+
+<div class="section" style="margin-top: 40px;">
+    <div class="section-header">
+        <h2><i class="fas fa-list"></i> Mis Dispositivos</h2>
+    </div>
+
+    {% if dispositivos and dispositivos|length > 0 %}
+    <div class="device-list">
+        {% for device in dispositivos %}
+        <div class="device-item">
+            <div class="device-icon">
+                {% if 'refrigerador' in device.tipo %}<i class="fas fa-snowflake"></i>
+                {% elif 'tv' in device.tipo or 'televisor' in device.tipo %}<i class="fas fa-tv"></i>
+                {% elif 'lavadora' in device.tipo %}<i class="fas fa-tshirt"></i>
+                {% elif 'aire' in device.tipo %}<i class="fas fa-wind"></i>
+                {% elif 'compu' in device.tipo %}<i class="fas fa-laptop"></i>
+                {% else %}<i class="fas fa-plug"></i>{% endif %}
+            </div>
+            <div class="device-info">
+                <h3>{{ device.nombre }}</h3>
+                <p>{{ device.tipo|title }} • {{ "%.0f"|format(device.potencia_watts) }}W • {{ device.horas_uso_dia }}h/día</p>
+            </div>
+            <div class="device-consumption">
+                <div class="consumption">{{ "%.2f"|format(device.consumo_bimestral_kwh()) }} kWh</div>
+                <div class="label">Bimestral</div>
+            </div>
+            <div class="device-actions">
+                <a href="{{ url_for('editar_dispositivo', usuario_id=usuario.id, dispositivo_id=device.id) }}" class="btn" style="background: none; color: #4ECDC4; padding: 5px;">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form method="POST" action="{{ url_for('eliminar_dispositivo', usuario_id=usuario.id, dispositivo_id=device.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-small" style="background: none; color: #FF6B6B; padding: 5px;" onclick="return confirm('¿Estás seguro de eliminar este dispositivo?');">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-plug" style="font-size: 3rem; color: #333; margin-bottom: 20px; display: block;"></i>
+        <h3>No hay dispositivos registrados</h3>
+        <p>Agrega tu primer dispositivo para comenzar a monitorear tu consumo energético</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="section" style="margin-top: 40px;">
+    <div class="section-header">
+        <h2><i class="fas fa-chart-line"></i> Últimos Reportes</h2>
+    </div>
+    {% if reportes %}
+    <div class="device-list">
+        {% for reporte in reportes|reverse|batch(3)|first %}
+        <div class="device-item">
+            <div class="device-icon">
+                <i class="fas fa-file-pdf" style="color: #e74c3c;"></i>
+            </div>
+            <div class="device-info">
+                <h3>Reporte {{ reporte.fecha_generacion.strftime('%d/%m/%Y') }}</h3>
+                <p>Ahorro: ${{ "%.2f"|format(reporte.ahorro_pesos) }}</p>
+            </div>
+            <div class="device-actions">
+                <a href="{{ url_for('static', filename='reports/' + reporte.archivo_pdf) }}" target="_blank" class="btn btn-primary" style="font-size: 0.8rem;">
+                    Ver PDF
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-secondary);">No hay reportes generados aún.</p>
+    {% endif %}
+</div>
+
+{% if modal_active and form %}
+<div class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: var(--card-bg); padding: 30px; border-radius: 10px; width: 90%; max-width: 500px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <h2>{{ 'Editar' if modo_edicion else 'Agregar' }} Dispositivo</h2>
+            <a href="{{ url_for('dashboard', usuario_id=usuario.id) }}" style="color: white; font-size: 1.5rem;"><i class="fas fa-times"></i></a>
+        </div>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label>{{ form.nombre.label }}</label>
+                {{ form.nombre(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.tipo.label }}</label>
+                {{ form.tipo(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.potencia_watts.label }}</label>
+                {{ form.potencia_watts(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.horas_uso_dia.label }}</label>
+                {{ form.horas_uso_dia(class="form-control") }}
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% if modal_consumo_active and form %}
+<div class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: var(--card-bg); padding: 30px; border-radius: 10px; width: 90%; max-width: 500px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <h2>Registrar Consumo</h2>
+            <a href="{{ url_for('dashboard', usuario_id=usuario.id) }}" style="color: white; font-size: 1.5rem;"><i class="fas fa-times"></i></a>
+        </div>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label>{{ form.periodo_inicio.label }}</label>
+                {{ form.periodo_inicio(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.periodo_fin.label }}</label>
+                {{ form.periodo_fin(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.consumo_kwh.label }}</label>
+                {{ form.consumo_kwh(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.costo_total.label }}</label>
+                {{ form.costo_total(class="form-control") }}
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
