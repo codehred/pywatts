@@ -73,6 +73,50 @@
             <i class="fas fa-magic"></i> Analizar y Optimizar
         </a>
     </div>
+    {% if usuario.consumos %}
+<div class="section" style="margin-top: 40px;">
+    <div class="section-header">
+        <h2><i class="fas fa-history"></i> Historial de Recibos CFE</h2>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden;">
+            <thead>
+                <tr style="background: #2c3e50; color: white; text-align: left;">
+                    <th style="padding: 15px;">Periodo</th>
+                    <th style="padding: 15px;">Consumo</th>
+                    <th style="padding: 15px;">Costo Total</th>
+                    <th style="padding: 15px;">Tarifa Calc.</th>
+                    <th style="padding: 15px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recibo in usuario.consumos|reverse %}
+                <tr style="border-bottom: 1px solid #333;">
+                    <td style="padding: 15px; color: var(--text-secondary);">
+                        {{ recibo.periodo_inicio.strftime('%d/%m/%Y') }} al {{ recibo.periodo_fin.strftime('%d/%m/%Y') }}
+                    </td>
+                    <td style="padding: 15px; font-weight: bold;">{{ recibo.consumo_kwh }} kWh</td>
+                    <td style="padding: 15px; color: #85c1e2;">${{ "%.2f"|format(recibo.costo_total) }}</td>
+                    <td style="padding: 15px;">
+                        <span style="background: rgba(255, 255, 255, 0.1); padding: 3px 8px; border-radius: 4px; font-size: 0.85rem;">
+                            ${{ "%.2f"|format(recibo.costo_por_kwh()) }}/kWh
+                        </span>
+                    </td>
+                    <td style="padding: 15px;">
+                        <form method="POST" action="{{ url_for('eliminar_consumo', usuario_id=usuario.id, consumo_id=recibo.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-small" style="padding: 5px 10px; font-size: 0.8rem;" onclick="return confirm('¿Borrar este recibo?');">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 </div>
 
 <div class="section" style="margin-top: 40px;">
@@ -209,11 +253,21 @@
             <div class="form-group">
                 <label>{{ form.potencia_watts.label }}</label>
                 {{ form.potencia_watts(class="form-control") }}
+                
+                {% if form.potencia_watts.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.85rem; margin-top: 5px; background: rgba(255,0,0,0.1); padding: 5px; border-radius: 5px;">
+                        {% for error in form.potencia_watts.errors %}
+                            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
                 <label>{{ form.horas_uso_dia.label }}</label>
                 {{ form.horas_uso_dia(class="form-control") }}
             </div>
+
+            
             <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar</button>
         </form>
     </div>
@@ -227,24 +281,58 @@
             <h2>Registrar Consumo</h2>
             <a href="{{ url_for('dashboard', usuario_id=usuario.id) }}" style="color: white; font-size: 1.5rem;"><i class="fas fa-times"></i></a>
         </div>
+        
         <form method="POST">
             {{ form.hidden_tag() }}
+            
             <div class="form-group">
                 <label>{{ form.periodo_inicio.label }}</label>
                 {{ form.periodo_inicio(class="form-control", type="date") }}
+                {% if form.periodo_inicio.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.8rem;">
+                        {% for error in form.periodo_inicio.errors %}
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
             <div class="form-group">
                 <label>{{ form.periodo_fin.label }}</label>
                 {{ form.periodo_fin(class="form-control", type="date") }}
+                {% if form.periodo_fin.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.8rem; margin-top: 5px; background: rgba(255,0,0,0.1); padding: 5px; border-radius: 5px;">
+                        {% for error in form.periodo_fin.errors %}
+                            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
             <div class="form-group">
                 <label>{{ form.consumo_kwh.label }}</label>
                 {{ form.consumo_kwh(class="form-control") }}
+                {% if form.consumo_kwh.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.8rem;">
+                        {% for error in form.consumo_kwh.errors %}
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
             <div class="form-group">
                 <label>{{ form.costo_total.label }}</label>
                 {{ form.costo_total(class="form-control") }}
+                {% if form.costo_total.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.8rem;">
+                        {% for error in form.costo_total.errors %}
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
             <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar</button>
         </form>
     </div>

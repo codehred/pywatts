@@ -174,18 +174,19 @@ class ConsumoBimestralForm(FlaskForm):
     submit = SubmitField('Registrar Consumo')
     
     def validate_periodo_fin(self, field):
-        
+        """Valida que la fecha de fin sea posterior a la de inicio"""
         if self.periodo_inicio.data and field.data:
             if field.data <= self.periodo_inicio.data:
                 raise ValidationError('La fecha de fin debe ser posterior a la fecha de inicio')
             
-            diferencia = (field.data - self.periodo_inicio.data).days
-            if diferencia < 50 or diferencia > 70:
-                raise ValidationError(
-                    f'El periodo debe ser aproximadamente bimestral (60 días). '
-                    f'El periodo ingresado es de {diferencia} días'
-                )
-    
+            # -----------------------------------------------
+            # diferencia = (field.data - self.periodo_inicio.data).days
+            # if diferencia < 50 or diferencia > 70:
+            #    raise ValidationError(
+            #        f'El periodo debe ser aproximadamente bimestral (60 días). '
+            #        f'El periodo ingresado es de {diferencia} días'
+            #    )
+            # ---------------------------------------------
     def validate_consumo_kwh(self, field):
         if field.data:
             if field.data < 10: 

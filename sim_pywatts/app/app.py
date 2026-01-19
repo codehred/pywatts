@@ -14,7 +14,7 @@ import os
 app = Flask(__name__)
 
 # Configuración
-#app.config['SECRET_KEY'] = 'cambiar después por una clave segura'
+app.config['SECRET_KEY'] = 'clave_secreta_real_ig'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pywatts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -374,7 +374,23 @@ def error_servidor(e):
     return render_template('base.html', error='Error interno del servidor'), 500
 
 
-
+@app.route('/usuario/<int:usuario_id>/consumo/<int:consumo_id>/eliminar', methods=['POST'])
+def eliminar_consumo(usuario_id, consumo_id):
+    """Eliminar un registro de consumo"""
+    # Buscar el recibo en la base de datos
+    consumo = db.session.get(ConsumoBimestral, consumo_id)
+    
+    # Verificar que exista y pertenezca al usuario
+    if not consumo or consumo.usuario_id != usuario_id:
+        flash('No se pudo eliminar el consumo.', 'danger')
+        return redirect(url_for('dashboard', usuario_id=usuario_id))
+    
+    # Borrarlo
+    db.session.delete(consumo)
+    db.session.commit()
+    
+    flash('Recibo eliminado exitosamente.', 'success')
+    return redirect(url_for('dashboard', usuario_id=usuario_id))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
