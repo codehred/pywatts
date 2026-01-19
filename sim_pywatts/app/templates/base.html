@@ -19,6 +19,15 @@
             {% endif %}
         {% endwith %}
 
+        {% if error %}
+        <div class="alert alert-danger" style="text-align: center; margin-top: 50px;">
+            <h1><i class="fas fa-exclamation-triangle"></i> Oops!</h1>
+            <h3>{{ error }}</h3>
+            <p>La página que buscas no existe o hubo un error interno.</p>
+            <a href="{{ url_for('lista_usuarios') }}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </div>

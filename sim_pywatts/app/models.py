@@ -27,9 +27,9 @@ class Dispositivo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     nombre = db.Column(db.String(100), nullable=False)
-    tipo = db.Column(db.String(50), nullable=False)  # refrigerador, tv, lavadora, etc.
-    potencia_watts = db.Column(db.Float, nullable=False)  # Potencia en watts
-    horas_uso_dia = db.Column(db.Float, nullable=False)  # Horas promedio de uso al día
+    tipo = db.Column(db.String(100), nullable=False)  
+    potencia_watts = db.Column(db.Float, nullable=False) 
+    horas_uso_dia = db.Column(db.Float, nullable=False)  
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
     
     def consumo_diario_kwh(self):

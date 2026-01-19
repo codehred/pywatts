@@ -375,12 +375,6 @@ def test_graficas(usuario_id):
         grafica_comparativa = gen_graficas.grafica_comparativa_antes_despues(ahorro_total)
         print(f"✓ Gráfica comparativa generada ({len(grafica_comparativa)} caracteres)")
         
-        grafica_proyeccion = gen_graficas.grafica_proyeccion_consumo(proyeccion)
-        print(f"✓ Gráfica de proyección generada ({len(grafica_proyeccion)} caracteres)")
-        
-        grafica_ahorro = gen_graficas.grafica_ahorro_por_dispositivo(configuracion_optima)
-        print(f"✓ Gráfica de ahorro generada ({len(grafica_ahorro)} caracteres)")
-        
         grafica_energia = gen_graficas.grafica_energia_acumulada(energia_acumulada, 'mes')
         print(f"✓ Gráfica de energía acumulada generada ({len(grafica_energia)} caracteres)")
         

@@ -85,21 +85,60 @@
         {% for device in dispositivos %}
         <div class="device-item">
             <div class="device-icon">
-                {% if 'refrigerador' in device.tipo %}<i class="fas fa-snowflake"></i>
-                {% elif 'tv' in device.tipo or 'televisor' in device.tipo %}<i class="fas fa-tv"></i>
-                {% elif 'lavadora' in device.tipo %}<i class="fas fa-tshirt"></i>
-                {% elif 'aire' in device.tipo %}<i class="fas fa-wind"></i>
-                {% elif 'compu' in device.tipo %}<i class="fas fa-laptop"></i>
-                {% else %}<i class="fas fa-plug"></i>{% endif %}
+                {# Convertimos a minúsculas y aseguramos que sea texto para evitar errores #}
+                {% set tipo = (device.tipo or '')|lower %}
+                
+                {# LÓGICA DE ICONOS ROBUSTA #}
+                {% if 'refrigerador' in tipo or 'nevera' in tipo %}
+                    <i class="fas fa-snowflake"></i>
+                {% elif 'tv' in tipo or 'televisor' in tipo or 'pantalla' in tipo %}
+                    <i class="fas fa-tv"></i>
+                {% elif 'lavadora' in tipo or 'secadora' in tipo or 'centro_lavado' in tipo %}
+                    <i class="fas fa-tshirt"></i>
+                
+                {# Aquí suele estar el error: agregamos variantes con y sin guion bajo #}
+                {% elif 'aire' in tipo or 'acondicionado' in tipo or 'clima' in tipo or 'minisplit' in tipo %}
+                    <i class="fas fa-wind"></i>
+                
+                {% elif 'compu' in tipo or 'laptop' in tipo or 'ordenador' in tipo or 'pc' in tipo or 'modem' in tipo or 'router' in tipo %}
+                    <i class="fas fa-laptop"></i>
+                {% elif 'microondas' in tipo or 'horno' in tipo or 'estufa' in tipo or 'tostadora' in tipo or 'licuadora' in tipo or 'freidora' in tipo %}
+                    <i class="fas fa-utensils"></i>
+                
+                {# Agregamos variantes para Focos #}
+                {% elif 'foco' in tipo or 'led' in tipo or 'luz' in tipo or 'lampara' in tipo or 'bombilla' in tipo %}
+                    <i class="fas fa-lightbulb"></i>
+                
+                {% elif 'consola' in tipo or 'videojuego' in tipo or 'xbox' in tipo or 'playstation' in tipo or 'nintendo' in tipo %}
+                    <i class="fas fa-gamepad"></i>
+                {% elif 'plancha' in tipo %}
+                    <i class="fas fa-tshirt" style="transform: rotate(45deg);"></i>
+                {% elif 'cafetera' in tipo %}
+                    <i class="fas fa-coffee"></i>
+                {% elif 'calentador' in tipo or 'boiler' in tipo or 'ducha' in tipo %}
+                    <i class="fas fa-hot-tub"></i>
+                {% elif 'aspiradora' in tipo %}
+                    <i class="fas fa-broom"></i>
+                {% else %}
+                    <i class="fas fa-plug"></i>
+                {% endif %}
             </div>
+            
             <div class="device-info">
                 <h3>{{ device.nombre }}</h3>
-                <p>{{ device.tipo|title }} • {{ "%.0f"|format(device.potencia_watts) }}W • {{ device.horas_uso_dia }}h/día</p>
+                <p>
+                    {{ device.tipo|replace('_', ' ')|title }} 
+                    • {{ "%.0f"|format(device.potencia_watts) }}W 
+                    • {{ device.horas_uso_dia }}h/día
+                </p>
+                <small style="color: red; font-size: 0.7rem;">Código interno: "{{ device.tipo }}"</small>
             </div>
+            
             <div class="device-consumption">
                 <div class="consumption">{{ "%.2f"|format(device.consumo_bimestral_kwh()) }} kWh</div>
                 <div class="label">Bimestral</div>
             </div>
+            
             <div class="device-actions">
                 <a href="{{ url_for('editar_dispositivo', usuario_id=usuario.id, dispositivo_id=device.id) }}" class="btn" style="background: none; color: #4ECDC4; padding: 5px;">
                     <i class="fas fa-edit"></i>

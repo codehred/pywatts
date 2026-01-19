@@ -17,32 +17,62 @@
         </div>
     </div>
 
-    <div class="impact-box">
-        <h2 style="color: var(--accent-color);"><i class="fas fa-leaf"></i> Impacto Ambiental y Ahorro</h2>
-        <div class="stats-grid" style="margin-top: 20px;">
+    <div class="impact-box" style="background: linear-gradient(135deg, #1e1e1e 0%, #2d3436 100%); padding: 30px; border-radius: 15px; margin-top: 30px; border: 1px solid #333; position: relative; overflow: hidden;">
+        <i class="fas fa-leaf" style="position: absolute; right: -20px; top: -20px; font-size: 10rem; color: rgba(78, 205, 196, 0.05); transform: rotate(15deg);"></i>
+        
+        <h2 style="color: var(--accent-color); position: relative; z-index: 1;">
+            <i class="fas fa-globe-americas"></i> Tu Huella Ecológica Positiva
+        </h2>
+        
+        <p style="color: #aaa; max-width: 800px; margin: 0 auto 30px auto; font-size: 0.95rem; position: relative; z-index: 1;">
+            Al reducir tu consumo eléctrico, evitas que las plantas generadoras quemen combustibles fósiles. 
+            Aquí te mostramos el impacto real de tu ahorro en términos ambientales.
+        </p>
+
+        <div class="stats-grid" style="position: relative; z-index: 1;">
             <div class="stat-card-savings">
                 <div class="icon"><i class="fas fa-piggy-bank"></i></div>
                 <div class="info">
-                    <h3>Ahorro Económico</h3>
-                    <div class="value">${{ ahorro_total.ahorro_pesos }}</div>
+                    <h3>Dinero Ahorrado</h3>
+                    <div class="value" style="color: #2ecc71;">${{ ahorro_total.ahorro_pesos }}</div>
+                    <small style="color: #777;">MXN Bimestrales</small>
                 </div>
             </div>
+
+            <div class="stat-card">
+                <div class="icon" style="color: #e67e22;"><i class="fas fa-smog"></i></div>
+                <div class="info">
+                    <h3>Emisiones Evitadas</h3>
+                    <div class="value">{{ impacto_ambiental.co2_kg_ahorrado }} kg</div>
+                    <small style="color: #777;">De CO₂ a la atmósfera</small>
+                </div>
+            </div>
+
             <div class="stat-card">
                 <div class="icon" style="color: #4ECDC4;"><i class="fas fa-tree"></i></div>
                 <div class="info">
-                    <h3>Árboles Equivalentes</h3>
+                    <h3>Equivalencia Forestal</h3>
                     <div class="value">{{ impacto_ambiental.equivalente_arboles }}</div>
+                    <small style="color: #777;">Árboles limpiando aire/año</small>
                 </div>
             </div>
+
             <div class="stat-card">
-                <div class="icon" style="color: #FF6B6B;"><i class="fas fa-car"></i></div>
+                <div class="icon" style="color: #FF6B6B;"><i class="fas fa-car-side"></i></div>
                 <div class="info">
-                    <h3>Km de Auto Evitados</h3>
-                    <div class="value">{{ impacto_ambiental.equivalente_km_auto }}</div>
+                    <h3>Menos Conducción</h3>
+                    <div class="value">{{ impacto_ambiental.equivalente_km_auto }} km</div>
+                    <small style="color: #777;">De recorrido en auto</small>
                 </div>
             </div>
         </div>
-        <p style="font-size: 1.1rem; margin-top: 10px;">{{ impacto_ambiental.mensaje }}</p>
+
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 20px; display: inline-block;">
+            <p style="font-size: 1rem; margin: 0; color: #e0e0e0;">
+                <i class="fas fa-info-circle" style="color: var(--accent-color);"></i> 
+                {{ impacto_ambiental.mensaje }}
+            </p>
+        </div>
     </div>
 
     <div class="section-header" style="margin-top: 40px;">
@@ -57,14 +87,6 @@
         <div class="chart-card">
             <h3>Distribución del Consumo</h3>
             <img src="data:image/png;base64,{{ grafica_pie }}" alt="Gráfica de Pastel">
-        </div>
-        <div class="chart-card">
-            <h3>Proyección Mensual</h3>
-            <img src="data:image/png;base64,{{ grafica_proyeccion }}" alt="Proyección">
-        </div>
-        <div class="chart-card">
-            <h3>Potencial de Ahorro</h3>
-            <img src="data:image/png;base64,{{ grafica_ahorro }}" alt="Ahorro">
         </div>
     </div>
 

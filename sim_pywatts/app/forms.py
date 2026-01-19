@@ -1,10 +1,33 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, SelectField, DateField, SubmitField
-from wtforms.validators import DataRequired, NumberRange, Length, ValidationError
+from wtforms import StringField, FloatField, SelectField, DateField, SubmitField, PasswordField
+from wtforms.validators import DataRequired, NumberRange, Length, ValidationError, EqualTo
 from datetime import datetime
 
+DISPOSITIVOS_DATA = {
+    'refrigerador': ('Refrigerador', 250),
+    'lavadora': ('Lavadora', 500),
+    'televisor': ('Televisión / Smart TV', 100),
+    'microondas': ('Horno de Microondas', 1200),
+    'computadora': ('Computadora de Escritorio', 200),
+    'laptop': ('Laptop / Portátil', 50),
+    'aire_acondicionado': ('Aire Acondicionado (Minisplit)', 1500),
+    'ventilador': ('Ventilador de Pedestal', 70),
+    'foco_led': ('Foco LED', 10),
+    'foco_incandescente': ('Foco Incandescente', 60),
+    'plancha': ('Plancha de Ropa', 1000),
+    'cafetera': ('Cafetera', 800),
+    'consola': ('Consola de Videojuegos', 150),
+    'modem': ('Módem / Router', 10),
+    'horno': ('Horno Eléctrico', 3000),
+    'calentador': ('Calentador de Agua', 2500),
+    'licuadora': ('Licuadora', 400),
+    'tostadora': ('Tostadora', 900),
+    'secadora': ('Secadora de Ropa', 3000),
+    'aspiradora': ('Aspiradora', 1400),
+    'otro': ('Otro Dispositivo', 100)
+}
+
 class RegistroUsuarioForm(FlaskForm):
-    """Formulario para registrar un nuevo usuario"""
     nombre_usuario = StringField(
         'Nombre de Usuario',
         validators=[
@@ -12,6 +35,24 @@ class RegistroUsuarioForm(FlaskForm):
             Length(min=3, max=100, message='El nombre debe tener entre 3 y 100 caracteres')
         ],
         render_kw={'placeholder': 'Ingrese su nombre de usuario'}
+    )
+
+    password = PasswordField(
+        'Contraseña',
+        validators=[
+            DataRequired(message='La contraseña es obligatoria'),
+            Length(min=6, message='La contraseña debe tener al menos 6 caracteres')
+        ],
+        render_kw={'placeholder': 'Ingrese su contraseña'}
+    )
+    
+    confirm_password = PasswordField(
+        'Confirmar Contraseña',
+        validators=[
+            DataRequired(message='Confirme su contraseña'),
+            EqualTo('password', message='Las contraseñas deben coincidir')
+        ],
+        render_kw={'placeholder': 'Repita su contraseña'}
     )
     
     domicilio = StringField(
@@ -27,32 +68,6 @@ class RegistroUsuarioForm(FlaskForm):
 
 
 class DispositivoForm(FlaskForm):
-    """Formulario para agregar/editar dispositivos"""
-    
-    # Tipos de dispositivos comunes
-    TIPOS_DISPOSITIVOS = [
-        ('', 'Seleccione un tipo'),
-        ('refrigerador', 'Refrigerador'),
-        ('lavadora', 'Lavadora'),
-        ('televisor', 'Televisor'),
-        ('tv', 'TV'),
-        ('computadora', 'Computadora'),
-        ('laptop', 'Laptop'),
-        ('aire_acondicionado', 'Aire Acondicionado'),
-        ('microondas', 'Microondas'),
-        ('horno', 'Horno'),
-        ('plancha', 'Plancha'),
-        ('calentador', 'Calentador de Agua'),
-        ('ventilador', 'Ventilador'),
-        ('licuadora', 'Licuadora'),
-        ('cafetera', 'Cafetera'),
-        ('tostadora', 'Tostadora'),
-        ('secadora', 'Secadora'),
-        ('aspiradora', 'Aspiradora'),
-        ('router', 'Router/Módem'),
-        ('consola', 'Consola de Videojuegos'),
-        ('otro', 'Otro')
-    ]
     
     nombre = StringField(
         'Nombre del Dispositivo',
@@ -65,7 +80,7 @@ class DispositivoForm(FlaskForm):
     
     tipo = SelectField(
         'Tipo de Dispositivo',
-        choices=TIPOS_DISPOSITIVOS,
+        choices=[('', 'Seleccione un tipo')] + [(k, v[0]) for k, v in DISPOSITIVOS_DATA.items()],
         validators=[DataRequired(message='Debe seleccionar un tipo de dispositivo')]
     )
     
@@ -90,33 +105,41 @@ class DispositivoForm(FlaskForm):
     submit = SubmitField('Guardar Dispositivo')
     
     def validate_potencia_watts(self, field):
-        """Validación personalizada para potencia según tipo de dispositivo"""
+        
         rangos_tipicos = {
             'refrigerador': (100, 800),
             'lavadora': (300, 1500),
-            'televisor': (50, 400),
-            'tv': (50, 400),
-            'computadora': (200, 600),
-            'laptop': (30, 100),
-            'aire_acondicionado': (1000, 5000),
+            'televisor': (30, 400),
+            'computadora': (100, 800),
+            'laptop': (30, 150),
+            'aire_acondicionado': (800, 5000),
             'microondas': (600, 1500),
-            'horno': (2000, 5000),
-            'plancha': (800, 2000),
-            'calentador': (1500, 5000),
-            'ventilador': (50, 150),
+            'horno': (1000, 5000),
+            'plancha': (800, 2500),
+            'calentador': (1000, 5000),
+            'ventilador': (30, 150),
+            'foco_led': (1, 50),
+            'foco_incandescente': (20, 150),
+            'cafetera': (500, 1500),
+            'modem': (5, 30),
+            'consola': (50, 400),
+            'licuadora': (200, 1000),
+            'tostadora': (500, 1500),
+            'secadora': (1000, 4000),
+            'aspiradora': (500, 2000),
+            'otro': (1, 10000)
         }
         
         if self.tipo.data in rangos_tipicos:
             min_val, max_val = rangos_tipicos[self.tipo.data]
             if field.data < min_val or field.data > max_val:
                 raise ValidationError(
-                    f'La potencia típica para {self.tipo.data} está entre {min_val}W y {max_val}W. '
-                    f'Verifique la especificación del fabricante.'
+                    f'La potencia típica para este dispositivo suele estar entre {min_val}W y {max_val}W. '
+                    f'Verifica la etiqueta del fabricante.'
                 )
 
 
 class ConsumoBimestralForm(FlaskForm):
-    """Formulario para registrar consumo bimestral"""
     
     periodo_inicio = DateField(
         'Fecha de Inicio del Periodo',
@@ -151,12 +174,11 @@ class ConsumoBimestralForm(FlaskForm):
     submit = SubmitField('Registrar Consumo')
     
     def validate_periodo_fin(self, field):
-        """Valida que la fecha de fin sea posterior a la de inicio"""
+        
         if self.periodo_inicio.data and field.data:
             if field.data <= self.periodo_inicio.data:
                 raise ValidationError('La fecha de fin debe ser posterior a la fecha de inicio')
             
-           
             diferencia = (field.data - self.periodo_inicio.data).days
             if diferencia < 50 or diferencia > 70:
                 raise ValidationError(
@@ -165,21 +187,14 @@ class ConsumoBimestralForm(FlaskForm):
                 )
     
     def validate_consumo_kwh(self, field):
-        """Valida que el consumo sea razonable para un hogar"""
         if field.data:
-            # Consumo típico residencial en México: 150-1000 kWh bimestrales
-            if field.data < 50:
-                raise ValidationError(
-                    'El consumo parece muy bajo para un hogar. Verifique el valor.'
-                )
-            elif field.data > 2000:
-                raise ValidationError(
-                    'El consumo parece muy alto para un hogar residencial. Verifique el valor.'
-                )
+            if field.data < 10: 
+                raise ValidationError('El consumo parece muy bajo. Verifique el valor.')
+            elif field.data > 5000:
+                raise ValidationError('El consumo parece excesivo para un hogar residencial.')
 
 
 class GenerarReporteForm(FlaskForm):
-    """Formulario para generar reportes"""
     
     OPCIONES_AHORRO = [
         ('0.15', '15% - Conservador'),
@@ -240,3 +255,5 @@ class BusquedaUsuarioForm(FlaskForm):
     )
     
     submit = SubmitField('Buscar')
+
+AgregarDispositivoForm = DispositivoForm

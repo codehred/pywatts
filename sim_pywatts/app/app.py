@@ -1,8 +1,9 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, send_file
 from flask_migrate import Migrate
 from models import db, Usuario, Dispositivo, ConsumoBimestral, Reporte
+# CORRECCIÓN 1: Agregamos DISPOSITIVOS_DATA a la importación
 from forms import (RegistroUsuarioForm, DispositivoForm, ConsumoBimestralForm, 
-                   GenerarReporteForm, BusquedaUsuarioForm)
+                   GenerarReporteForm, BusquedaUsuarioForm, DISPOSITIVOS_DATA)
 from services.calculations import OptimizadorEnergetico
 from services.recommendations import GeneradorRecomendaciones
 from services.charts import GeneradorGraficas
@@ -13,7 +14,7 @@ import os
 app = Flask(__name__)
 
 # Configuración
-app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui_cambiala_en_produccion'
+#app.config['SECRET_KEY'] = 'cambiar después por una clave segura'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pywatts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -24,20 +25,15 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Inicializar extensiones
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# Crear tablas si no existen
 with app.app_context():
     db.create_all()
-
-
 
 @app.route('/')
 def index():
     return redirect(url_for('lista_usuarios'))
-
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro_usuario():
@@ -45,7 +41,6 @@ def registro_usuario():
     form = RegistroUsuarioForm()
     
     if form.validate_on_submit():
-        # Verificar si el usuario ya existe
         usuario_existente = Usuario.query.filter_by(
             nombre_usuario=form.nombre_usuario.data
         ).first()
@@ -71,7 +66,6 @@ def registro_usuario():
 
 @app.route('/usuarios')
 def lista_usuarios():
-    """Lista de todos los usuarios"""
     busqueda_form = BusquedaUsuarioForm()
     usuarios = Usuario.query.order_by(Usuario.fecha_registro.desc()).all()
     return render_template('login.html', usuarios=usuarios, form=busqueda_form)
@@ -115,6 +109,7 @@ def agregar_dispositivo(usuario_id):
     consumos = usuario.consumos
     reportes = usuario.reportes
     
+    # Datos para el contexto del dashboard
     total_dispositivos = len(dispositivos)
     consumo_total = sum(d.consumo_bimestral_kwh() for d in dispositivos) if dispositivos else 0
     ultimo_consumo = consumos[-1] if consumos else None
@@ -124,7 +119,7 @@ def agregar_dispositivo(usuario_id):
     
     if form.validate_on_submit():
         nuevo_dispositivo = Dispositivo(
-            usuario_id=usuario_id,
+            usuario_id=usuario_id, 
             nombre=form.nombre.data,
             tipo=form.tipo.data,
             potencia_watts=form.potencia_watts.data,
@@ -281,8 +276,6 @@ def analizar_consumo(usuario_id):
     grafica_barras = gen_graficas.grafica_consumo_por_dispositivo(consumo_por_dispositivo)
     grafica_pie = gen_graficas.grafica_pie_distribucion(consumo_por_dispositivo)
     grafica_comparativa = gen_graficas.grafica_comparativa_antes_despues(ahorro_total)
-    grafica_proyeccion = gen_graficas.grafica_proyeccion_consumo(proyeccion)
-    grafica_ahorro = gen_graficas.grafica_ahorro_por_dispositivo(configuracion_optima)
     
     # Generar recomendaciones
     gen_recomendaciones = GeneradorRecomendaciones(dispositivos, configuracion_optima)
@@ -300,9 +293,7 @@ def analizar_consumo(usuario_id):
                           impacto_ambiental=impacto_ambiental,
                           grafica_barras=grafica_barras,
                           grafica_pie=grafica_pie,
-                          grafica_comparativa=grafica_comparativa,
-                          grafica_proyeccion=grafica_proyeccion,
-                          grafica_ahorro=grafica_ahorro)
+                          grafica_comparativa=grafica_comparativa)
 
 
 @app.route('/usuario/<int:usuario_id>/generar-pdf')
@@ -381,6 +372,8 @@ def pagina_no_encontrada(e):
 @app.errorhandler(500)
 def error_servidor(e):
     return render_template('base.html', error='Error interno del servidor'), 500
+
+
 
 
 if __name__ == '__main__':
